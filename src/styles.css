@@ -552,8 +552,12 @@ body::before { display:block; }
   height: 30px;
   border-radius: 50%;
   background: #d0c5ab;
+  mix-blend-mode: difference;
   pointer-events: none;
   transform: translateX(-50%);
+}
+@media (max-width: 700px) {
+  .page-loader-docked-oval { width: 18px; height: 21px; }
 }
 @keyframes loader-oval-spin3d {
   from { transform: rotateY(0deg); }

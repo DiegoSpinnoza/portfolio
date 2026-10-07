@@ -530,7 +530,6 @@ function ProjectModal({ project, onClose }) {
         </div>
         <div className="border-b border-line px-6 pb-6 pt-3">
           <div>
-            <p className="modal-eyebrow font-mono text-[11px] uppercase tracking-[0.16em]">Proyecto</p>
             <h3 id="project-modal-title" className="mt-2 text-3xl font-bold leading-tight text-ink">
               {project.name.replace(/-/g, " ")}
             </h3>
@@ -573,7 +572,7 @@ function ProjectModal({ project, onClose }) {
   );
 }
 
-function PageLoader({ ready, complete, onComplete }) {
+function PageLoader({ ready, complete, onComplete, hidden = false }) {
   const [leaving, setLeaving] = React.useState(false);
   const [destination, setDestination] = React.useState({ x: 0, y: 0 });
 
@@ -593,7 +592,7 @@ function PageLoader({ ready, complete, onComplete }) {
     };
   }, [ready, onComplete]);
 
-  if (complete) return <span className="page-loader-docked-oval" aria-hidden="true" />;
+  if (complete) return hidden ? null : <span className="page-loader-docked-oval" aria-hidden="true" />;
 
   return (
     <div
@@ -850,7 +849,7 @@ function App() {
       </main>
       <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
       <CvModal open={cvOpen} onClose={() => setCvOpen(false)} pdfSrc={pdfSrc} />
-      <PageLoader ready={pageReady} complete={loaderComplete} onComplete={handleLoaderComplete} />
+      <PageLoader ready={pageReady} complete={loaderComplete} onComplete={handleLoaderComplete} hidden={Boolean(selectedProject) || cvOpen} />
     </>
   );
 }
