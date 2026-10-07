@@ -1,0 +1,7 @@
+Coloca tu PDF de curriculum en esta misma carpeta con este nombre:
+
+curriculum-diego-espinoza.pdf
+
+La app React ya apunta a esta ruta:
+
+/curriculum-diego-espinoza.pdf
