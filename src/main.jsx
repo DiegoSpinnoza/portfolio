@@ -1,10 +1,11 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { LazyMotion, domAnimation, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, LazyMotion, domAnimation } from "motion/react";
 import * as m from "motion/react-m";
 import {
   ArrowDownToLine,
-  ArrowUpRight,
+  ArrowLeft,
+  ArrowRight,
   ExternalLink,
   FileText,
   Github,
@@ -30,13 +31,29 @@ const projectCardBackgrounds = {
   carta: "/images/carta-background.jpg",
 };
 
+const bdatScreenshots = [
+  { src: "/images/bdat-home.png", title: "Inicio", description: "Portada de BDAT y acceso a la plataforma de análisis óseo." },
+  { src: "/images/bdat-simulations.png", title: "Panel de simulaciones", description: "Consulta parámetros, estados y avance de los trabajos." },
+  { src: "/images/bdat-simulation-setup.png", title: "Parámetros del modelo", description: "Configura emisores, receptores, dimensiones y porosidad." },
+  { src: "/images/bdat-mesh-setup.png", title: "Malla y tecnología", description: "Ajusta el mallado y selecciona la tecnología del solucionador." },
+  { src: "/images/bdat-queue-manager.png", title: "Administrador de cola", description: "Revisa el orden y administra las simulaciones pendientes." },
+  { src: "/images/bdat-simulation-details.png", title: "Detalle de simulación", description: "Inspecciona el estado y los parámetros de un análisis." },
+  { src: "/images/bdat-simulation-results.png", title: "Resultados", description: "Visualiza señales, valores singulares y espectros de ondas guiadas." },
+];
+
+const floridaScreenshots = [
+  { src: "/images/florida.png", title: "Inicio", description: "Portada del club con su próximo partido y horarios." },
+];
 
 const fallbackProjects = [
   {
     id: "01",
-    name: "Ovomenú",
-    description: "Menú QR como plataforma SaaS para digitalizar la gestión de restaurantes.",
-    cardSummary: "Menú QR, gestión de restaurantes, plataforma SaaS.",
+    name: "OvoMenu",
+    description: "Una plataforma para que restaurantes creen su carta digital, la compartan con un código QR y actualicen su oferta en línea.",
+    services: "Carta digital · Pedidos · Editor visual · Código QR",
+    projectType: "SaaS",
+    technologies: ["React", "Node.js", "Supabase", "Vercel", "Tailwind CSS"],
+    cardSummary: "Carta digital con acceso por código QR para restaurantes.",
     tags: ["Producto digital", "SaaS", "UX/UI"],
     year: "2024",
     visual: "ovomenu",
@@ -50,10 +67,26 @@ const fallbackProjects = [
   },
   {
     id: "02",
+    name: "BDAT",
+    githubRepoName: "BDAT",
+    description: "Aplicación de escritorio para configurar simulaciones de ondas ultrasónicas en hueso cortical y analizar sus resultados.",
+    cardSummary: "Aplicación de escritorio para simular ondas ultrasónicas en hueso cortical.",
+    technologies: ["FEniCS", "Docker", "Redis", "Celery", "React"],
+    tags: ["Healthtech", "Investigación", "Interfaz"],
+    year: "2023",
+    visual: "bdat",
+    html_url: "https://github.com/DiegoSpinnoza/BDAT",
+    language: "Jupyter Notebook",
+    stargazers_count: 0,
+    forks_count: 0,
+  },
+  {
+    id: "03",
     name: "Bar Cívico",
     githubRepoName: "carta",
-    description: "Digitalización de una carta física, adaptada a una experiencia web clara y accesible.",
-    cardSummary: "Carta digital, menú online, gestión de contenidos.",
+    description: "Bar Cívico presenta la carta del restaurante en una página web adaptable a móviles, para que los clientes puedan consultar sus platos y precios.",
+    cardSummary: "Carta web adaptable para consultar platos y precios de Bar Cívico.",
+    technologies: ["HTML", "CSS", "JavaScript"],
     tags: ["Diseño web", "Frontend", "Responsive"],
     year: "2023",
     visual: "bar",
@@ -64,11 +97,12 @@ const fallbackProjects = [
     forks_count: 0,
   },
   {
-    id: "03",
+    id: "04",
     name: "Gestión deportiva",
     githubRepoName: "florida",
-    description: "Aplicación web para el control, la gestión y la información de un club deportivo.",
-    cardSummary: "Gestión de club deportivo, resultados, partidos, arriendos.",
+    description: "La plataforma de Gestión deportiva reúne la información del club Florida: partidos, resultados, plantel y arriendo de espacios.",
+    cardSummary: "Información del club Florida, sus partidos, resultados y arriendos.",
+    technologies: ["React", "JavaScript", "CSS"],
     tags: ["Dashboard", "Producto", "Datos"],
     year: "2024",
     visual: "sports",
@@ -78,27 +112,7 @@ const fallbackProjects = [
     stargazers_count: 0,
     forks_count: 0,
   },
-  {
-    id: "04",
-    name: "BDAT",
-    githubRepoName: "BDAT",
-    description: "Sistema de análisis óseo mediante ondas de ultrasonido para apoyar el diagnóstico clínico.",
-    cardSummary: "Ultrasonido óseo, análisis de ondas, visualización científica.",
-    tags: ["Healthtech", "Investigación", "Interfaz"],
-    year: "2023",
-    visual: "bdat",
-    html_url: "https://github.com/DiegoSpinnoza/BDAT",
-    language: "Jupyter Notebook",
-    stargazers_count: 0,
-    forks_count: 0,
-  },
 ];
-
-const repoDescriptionFallbacks = {
-  bdat: "Aplicación para simular y visualizar la propagación de ondas guiadas en hueso cortical, con análisis científico y gráficos interactivos.",
-  carta: "Sistema de carta digital para restaurantes con menú público para clientes y panel de administración, conectado a una API y Supabase.",
-  florida: "Plataforma web para un club deportivo que reúne resultados, partidos, tabla, plantel, convocatorias y gestión de arriendos.",
-};
 
 const skills = [
   {
@@ -188,18 +202,14 @@ function useGithubProjects() {
         if (!response.ok) throw new Error("GitHub API error");
 
         const repos = await response.json();
-        const publicRepos = repos.filter((repo) => !repo.fork && repo.name.toLowerCase() !== "diegospinnoza");
+        const publicRepos = repos.filter((repo) => !repo.fork && !["diegospinnoza", "portfolio"].includes(repo.name.toLowerCase()));
         const repoByName = new Map(publicRepos.map((repo) => [repo.name.toLowerCase(), repo]));
         const featuredNames = new Set(fallbackProjects
-          .slice(0, 4)
           .map((project) => (project.githubRepoName || project.name).toLowerCase()));
-        const featured = fallbackProjects.slice(0, 4).map((project) => {
+        const featured = fallbackProjects.map((project) => {
           const repo = repoByName.get((project.githubRepoName || project.name).toLowerCase());
-          const githubDescription = repo?.description?.trim();
           return {
             ...project,
-            description: githubDescription || repoDescriptionFallbacks[repo?.name?.toLowerCase()] || project.description,
-            github_description: githubDescription || null,
             html_url: repo?.html_url || project.html_url,
             language: repo?.language || project.language,
             stargazers_count: repo?.stargazers_count ?? project.stargazers_count,
@@ -312,16 +322,16 @@ function Nav() {
 function Hero({ onOpenCv, activeSection, isShrinking }) {
   return (
     <section id="top" className={`editorial-hero reference-hero${isShrinking ? " is-shrinking" : ""}`}>
-      <div className="editorial-top" data-reveal>
+      <div className="editorial-top">
         <a className="editorial-name" href="#top">Diego<br />Espinoza</a>
       </div>
       <img className="hero-portrait" data-reveal src="/images/hero-vintage.png" alt="Retrato artístico de Diego Espinoza" />
-      <div className="editorial-headline" data-reveal>
+      <div className="editorial-headline">
         <div className="editorial-title">
           <span className="headline-one">DESARROLLADOR</span>
           <span className="headline-two">FULL STACK</span>
         </div>
-        <p className="hero-greeting">Diego Espinoza, ingeniero informático de Valparaíso, Chile. Diseño y desarrollo experiencias digitales.</p>
+        <p className="hero-greeting"><span className="hero-name-highlight">Diego Espinoza</span>, ingeniero informático de Valparaíso, Chile. Diseño y desarrollo experiencias digitales.</p>
       </div>
       <div className="fixed bottom-5 left-0 right-0 z-[60] flex w-full items-center justify-center px-[14px] text-[#dededb]/60 pointer-events-none max-[700px]:bottom-3 max-[700px]:px-2">
         <nav id="main-dock" className="pointer-events-auto mx-auto flex w-max max-w-full items-center justify-center gap-[clamp(8px,2.5vw,34px)] border border-[#dededb]/10 bg-[#090807] px-[18px] py-[14px] uppercase shadow-[0_10px_32px_rgba(0,0,0,.48),inset_0_1px_rgba(222,222,219,.025)] transition-none max-[700px]:max-w-[calc(100vw-16px)] max-[700px]:gap-[5px] max-[700px]:px-2 max-[700px]:py-[10px]" aria-label="Navegación principal">
@@ -338,32 +348,32 @@ function Hero({ onOpenCv, activeSection, isShrinking }) {
   );
 }
 
-function ScrollReveal({ as = "div", children, className = "", style, preserveColors = false, ...props }) {
+function ScrollReveal({ as = "div", children, className = "", style, ...props }) {
   const ref = React.useRef(null);
-  const shouldReduceMotion = useReducedMotion();
+  const [isVisible, setIsVisible] = React.useState(false);
   const MotionElement = m[as];
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
-  });
 
-  const exitProgress = useTransform(scrollYProgress, (progress) => {
-    const targetHeight = Math.max(ref.current?.offsetHeight || 1, 1);
-    const viewportHeight = window.innerHeight || 1;
-    const targetTop = viewportHeight - progress * (viewportHeight + targetHeight);
-    const targetBottom = targetTop + targetHeight;
-    const visibleHeight = Math.max(0, Math.min(targetBottom, viewportHeight) - Math.max(targetTop, 0));
-    const visibleLimit = Math.min(targetHeight, viewportHeight);
-    return Math.max(0, Math.min(1, 1 - visibleHeight / visibleLimit));
-  });
-  const scale = useTransform(exitProgress, [0, 1], [1, preserveColors ? 0.94 : 0.84]);
-  const opacity = useTransform(exitProgress, [0, 1], [1, 0]);
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+      setIsVisible(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setIsVisible(true);
+      observer.unobserve(element);
+    }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <MotionElement
       ref={ref}
-      className={`scroll-motion ${className}`.trim()}
-      style={{ ...style, scale: shouldReduceMotion ? 1 : scale, opacity: shouldReduceMotion || preserveColors ? 1 : opacity }}
+      className={`scroll-motion${isVisible ? " is-visible" : ""} ${className}`.trim()}
+      style={style}
       {...props}
     >
       {children}
@@ -382,32 +392,120 @@ function SectionHeader({ title, count }) {
   );
 }
 
-function ProjectCard({ project, onSelect }) {
+function ProjectCard({ project, onSelect, index }) {
   const publicUrl = project.site_url || project.link_url;
   const tags = Array.isArray(project.tags)
     ? project.tags.filter(Boolean)
     : [project.language].filter(Boolean);
+  const isBdat = project.visual === "bdat";
+  const isFlorida = project.visual === "sports";
 
   return (
-    <ScrollReveal as="article" className="project-card group" preserveColors>
-      <button className="project-card-hit" aria-label={`Ver proyecto ${project.name}`} type="button" onClick={() => onSelect(project)}>
-        <ProjectVisual project={project} />
-        <span className="project-content">
-          <span className="project-heading">
-            <span className="project-description">{project.cardSummary || project.description}</span>
-          </span>
-          <span className="project-footer">
+    <ScrollReveal as="article" className="project-card group">
+      <div className="project-row">
+        <button className="project-card-hit" aria-label={`Abrir proyecto ${project.name}`} type="button" onClick={() => onSelect(project)}>
+          {isFlorida ? <img className="project-cover-image" src={floridaScreenshots[0].src} alt={`Vista previa de ${project.name}`} /> : <ProjectVisual project={project} />}
+        </button>
+        <div className="project-content">
+          <div className="project-heading">
+            <span className="project-number">{index + 1}</span>
+            <h3 className="project-card-title">{project.cardSummary || project.description}</h3>
+          </div>
+          <div className="project-footer">
             <span className="tag-list">{tags.length ? tags.join(", ") : "Proyecto de software"}</span>
-          </span>
-        </span>
-      </button>
-      {publicUrl ? (
-        <a className="project-link" href={publicUrl} target="_blank" rel="noreferrer">
-          <span>Ver proyecto</span>
-          <ExternalLink size={14} />
-        </a>
-      ) : null}
+            <div className="project-actions">
+              {project.html_url ? (
+                <a className="project-action-link project-action-github" href={project.html_url} target="_blank" rel="noreferrer" aria-label={`Ver código de ${project.name} en GitHub`} onClick={(event) => event.stopPropagation()}>
+                  <Github size={15} /> GitHub
+                </a>
+              ) : null}
+              {publicUrl ? (
+                <a className="project-action-link project-action-web" href={publicUrl} target="_blank" rel="noreferrer" aria-label={`Abrir sitio web de ${project.name}`} onClick={(event) => event.stopPropagation()}>
+                  <ExternalLink size={15} /> Web
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </div>
     </ScrollReveal>
+  );
+}
+
+function AutoProjectCarousel({ slides, label, intervalMs = 4500, className = "" }) {
+  const [slide, setSlide] = React.useState(0);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const changeSlide = (direction) => {
+    setSlide((current) => (current + direction + slides.length) % slides.length);
+  };
+
+  React.useEffect(() => {
+    if (slides.length < 2 || isPaused || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const timer = window.setInterval(() => {
+      setSlide((current) => (current + 1) % slides.length);
+    }, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [isPaused, slides.length, intervalMs]);
+
+  return (
+    <section
+      className={`bdat-carousel bdat-card-carousel ${className}`.trim()}
+      aria-label={label}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setIsPaused(false);
+      }}
+    >
+      <div className="bdat-carousel-frame">
+        <AnimatePresence>
+          <m.div
+            key={slides[slide].src}
+            className="bdat-carousel-slide"
+            initial={{ opacity: 0, x: 18, scale: 0.99 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -14, scale: 0.995 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <img className="bdat-carousel-image" src={slides[slide].src} alt={`${slides[slide].title}: ${slides[slide].description}`} />
+          </m.div>
+        </AnimatePresence>
+        {slides.length > 1 ? (
+          <>
+            <button className="bdat-carousel-arrow bdat-carousel-previous" type="button" onClick={() => changeSlide(-1)} aria-label="Imagen anterior">
+              <ArrowLeft size={18} />
+            </button>
+            <button className="bdat-carousel-arrow bdat-carousel-next" type="button" onClick={() => changeSlide(1)} aria-label="Imagen siguiente">
+              <ArrowRight size={18} />
+            </button>
+          </>
+        ) : null}
+      </div>
+      <div className="bdat-carousel-caption">
+        <div>
+          <h4>{slides[slide].title}</h4>
+          <p>{slides[slide].description}</p>
+        </div>
+        <span className="bdat-carousel-count" aria-live="polite">
+          {String(slide + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+        </span>
+      </div>
+      {slides.length > 1 ? (
+        <div className="bdat-carousel-dots" role="group" aria-label="Seleccionar imagen">
+          {slides.map((item, index) => (
+            <button
+              key={item.src}
+              className={`bdat-carousel-dot${index === slide ? " is-active" : ""}`}
+              type="button"
+              aria-label={`Ver ${item.title}`}
+              aria-current={index === slide ? "true" : undefined}
+              onClick={() => setSlide(index)}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
   );
 }
 
@@ -415,15 +513,9 @@ function ProjectVisual({ project }) {
   if (project.visual === "ovomenu") {
     return (
       <span className="visual visual-ovo" aria-hidden="true">
-        <span className="ovo-orbit orbit-one" />
-        <span className="ovo-orbit orbit-two" />
-        <span className="phone">
-          <span className="phone-top"><span>OVO</span><i /></span>
-          <span className="phone-hero"><span>MENÚ DIGITAL</span><span>Todo lo que te gusta,<br />en un solo lugar.</span></span>
-          <span className="food-row"><i /><i /><i /></span>
-          <span className="food-card"><i /><span><b>Especial de la casa</b><small>Ingredientes frescos</small></span><strong>•••</strong></span>
-        </span>
-        <span className="visual-word">OVOMENÚ</span>
+        <video className="ovo-cover-video" autoPlay muted loop playsInline preload="metadata" poster="/images/ovomenu-cover.png" aria-label="Presentación de OvoMenu">
+          <source src="/videos/ovomenu-cover.mp4" type="video/mp4" />
+        </video>
       </span>
     );
   }
@@ -444,17 +536,9 @@ function ProjectVisual({ project }) {
   if (project.visual === "bdat") {
     return (
       <span className="visual visual-bdat" aria-hidden="true">
-        <span className="scan-interface">
-          <span className="scan-top"><span>BDAT / ANÁLISIS ÓSEO</span><i>ULTRASONIDO</i></span>
-          <span className="bone-scan"><span className="scan-grid" />
-            <svg viewBox="0 0 480 220">
-              <path d="M40 141c34-4 50-49 84-45 39 4 52 75 92 70 41-5 57-102 99-102 44 0 60 78 125 61" />
-              <path d="M40 159c38-2 52-39 85-35 38 5 49 66 89 61 41-4 60-89 101-89 43 0 63 63 125 52" />
-            </svg>
-            <span className="scan-marker"><i /><span>SEÑAL</span></span>
-          </span>
-          <span className="scan-stats"><span><small>LECTURA</small>Ultrasonido</span><span><small>ANÁLISIS</small>Estructura ósea</span></span>
-        </span>
+        <video className="bdat-cover-video" autoPlay muted loop playsInline preload="metadata" poster="/images/bdat-home.png" aria-label="Presentación del proyecto BDAT">
+          <source src="/videos/bdat-cover.mp4" type="video/mp4" />
+        </video>
       </span>
     );
   }
@@ -478,8 +562,8 @@ function Projects({ onSelectProject, projects = fallbackProjects }) {
         <ScrollReveal as="h2" className="section-display-title page-title">Proyectos.</ScrollReveal>
       </div>
       <div className="projects-grid">
-        {projects.map((project) => (
-          <ProjectCard key={project.id || project.html_url} project={project} onSelect={onSelectProject} />
+        {projects.map((project, index) => (
+          <ProjectCard key={project.id || project.html_url} project={project} index={index} onSelect={onSelectProject} />
         ))}
       </div>
     </section>
@@ -515,14 +599,14 @@ function ProjectModal({ project, onClose }) {
 
   if (!project) return null;
 
-  const language = project.language || "-";
+  const technologies = project.technologies || project.tags || [project.language].filter(Boolean);
   const dotClass = langColors[project.language] || "bg-[#5de8c8]";
-  const projectLink = project.link_url || project.html_url;
+  const projectLink = project.site_url || project.link_url || project.html_url;
 
   return (
     <div className={`modal-shell${isClosing ? " is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="project-modal-title">
       <button className="modal-backdrop" type="button" aria-label="Cerrar modal" onClick={handleClose} />
-      <div className="modal-panel">
+      <div className={`modal-panel${project.visual === "ovomenu" ? " ovomenu-modal-panel" : ""}`}>
         <div className="flex w-full justify-center px-6 pt-4">
           <button className="grid h-8 w-8 place-items-center border-0 bg-transparent p-0 text-[#dededb]" type="button" aria-label="Cerrar modal" onClick={handleClose}>
             <X size={20} strokeWidth={1.5} />
@@ -531,39 +615,54 @@ function ProjectModal({ project, onClose }) {
         <div className="border-b border-line px-6 pb-6 pt-3">
           <div>
             <h3 id="project-modal-title" className="mt-2 text-3xl font-bold leading-tight text-ink">
-              {project.name.replace(/-/g, " ")}
+              {project.visual === "ovomenu" ? "OvoMenu" : project.name.replace(/-/g, " ")}
             </h3>
           </div>
         </div>
         <div className="space-y-6 p-6">
-          <p className="text-base leading-8 text-ink/60">
-            {project.description || "Este repositorio no tiene descripcion publica en GitHub, pero forma parte de mi trabajo y exploracion tecnica."}
-          </p>
-          {projectLink ? (
-            <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
-              <div className="bg-mist p-4">
-                <p className="modal-kicker">Lenguaje</p>
-                <p className="mt-2 flex items-center gap-2 text-sm font-semibold text-ink">
-                  <span className={`h-2 w-2 rounded-full ${dotClass}`} />
-                  {language}
-                </p>
+          {project.visual === "ovomenu" ? (
+            <section className="ovomenu-project-details" aria-label={`Información de ${project.name}`}>
+              <div className="ovomenu-project-summary">
+                <div>
+                  <h4>Servicios</h4>
+                  <p>{project.services}</p>
+                </div>
+                <div>
+                  <h4>Tipo</h4>
+                  <p>{project.projectType}</p>
+                </div>
               </div>
-              <div className="bg-mist p-4">
-                <p className="modal-kicker">Stars</p>
-                <p className="mt-2 text-sm font-semibold text-ink">{project.stargazers_count}</p>
-              </div>
-              <div className="bg-mist p-4">
-                <p className="modal-kicker">Forks</p>
-                <p className="mt-2 text-sm font-semibold text-ink">{project.forks_count}</p>
-              </div>
-            </div>
+            </section>
           ) : null}
+          {project.visual === "bdat" || project.visual === "sports" ? (
+            <AutoProjectCarousel
+              key={project.visual}
+              slides={project.visual === "bdat" ? bdatScreenshots : floridaScreenshots}
+              label={`Recorrido por las imágenes de ${project.name}`}
+            />
+          ) : null}
+          {project.visual === "ovomenu" ? (
+            <img className="ovomenu-project-image" src="/images/ovomenu-cover.png" alt="Vista de la portada de OvoMenu" />
+          ) : null}
+          <section className="project-modal-copy" aria-label={`Descripción y tecnologías de ${project.name}`}>
+            <div>
+              {project.visual === "ovomenu" ? <h4>Descripción</h4> : null}
+              <p>{project.description || project.cardSummary || "Proyecto de desarrollo de software."}</p>
+            </div>
+            <div>
+              <h4>Tecnologías</h4>
+              <p>{technologies.length ? technologies.join(" · ") : "No especificadas"}</p>
+            </div>
+          </section>
           <div className="flex flex-wrap gap-3">
             {projectLink ? (
               <a className="btn-primary" href={projectLink} target="_blank" rel="noreferrer">
-                {project.link_url ? <ExternalLink size={16} /> : <Github size={16} />}
-                {project.link_label || "Ver en GitHub"}
+                {projectLink === project.html_url ? <Github size={16} /> : <ExternalLink size={16} />}
+                {project.link_label || (projectLink === project.html_url ? "Ver en GitHub" : "Ver sitio web")}
               </a>
+            ) : null}
+            {project.html_url && projectLink !== project.html_url ? (
+              <a className="btn-secondary" href={project.html_url} target="_blank" rel="noreferrer"><Github size={16} /> GitHub</a>
             ) : null}
           </div>
         </div>
@@ -592,7 +691,7 @@ function PageLoader({ ready, complete, onComplete, hidden = false }) {
     };
   }, [ready, onComplete]);
 
-  if (complete) return hidden ? null : <span className="page-loader-docked-oval" aria-hidden="true" />;
+  if (complete) return hidden ? null : <span className="page-loader-docked-oval" aria-hidden="true">D</span>;
 
   return (
     <div
@@ -605,7 +704,7 @@ function PageLoader({ ready, complete, onComplete, hidden = false }) {
       aria-label={complete ? "Portfolio listo" : "Cargando portfolio"}
       aria-live={complete ? "off" : "polite"}
     >
-      <span className="page-loader-oval" aria-hidden="true" />
+      <span className="page-loader-oval" aria-hidden="true">D</span>
       <span className="sr-only">{leaving ? "Listo" : "Cargando contenido"}</span>
     </div>
   );
@@ -819,17 +918,13 @@ function App() {
       return undefined;
     }
 
-    let previousScrollY = window.scrollY;
     const observer = new IntersectionObserver((entries) => {
-      const currentScrollY = window.scrollY;
-      const scrollDirection = currentScrollY >= previousScrollY ? 1 : -1;
-      previousScrollY = currentScrollY;
       entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
         const target = entry.target;
-        target.style.setProperty("--reveal-offset", entry.isIntersecting
-          ? `${scrollDirection * 42}px`
-          : `${scrollDirection * -42}px`);
-        target.classList.toggle("is-visible", entry.isIntersecting);
+        target.style.setProperty("--reveal-offset", "0px");
+        target.classList.add("is-visible");
+        observer.unobserve(target);
       });
     }, { threshold: 0.08 });
     hero.forEach((target) => observer.observe(target));
