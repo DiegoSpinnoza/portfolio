@@ -322,16 +322,16 @@ function Nav() {
 function Hero({ onOpenCv, activeSection, isShrinking }) {
   return (
     <section id="top" className={`editorial-hero reference-hero${isShrinking ? " is-shrinking" : ""}`}>
-      <div className="editorial-top">
-        <a className="editorial-name" href="#top">Diego<br />Espinoza</a>
-      </div>
       <img className="hero-portrait" data-reveal src="/images/hero-vintage.png" alt="Retrato artístico de Diego Espinoza" />
       <div className="editorial-headline">
-        <div className="editorial-title">
-          <span className="headline-one">DESARROLLADOR</span>
-          <span className="headline-two">FULL STACK</span>
+        <div className="hero-copy">
+          <p className="hero-greeting">Hola, me llamo <span className="hero-name-highlight">Diego Espinoza</span>. Diseño de forma creativa y perfeccionista.</p>
+          <div className="editorial-title">
+            <span className="headline-one">DESARROLLADOR</span>
+            <span className="headline-two">FULL STACK</span>
+          </div>
+          <p className="hero-experience"><span className="hero-name-highlight">+4 años de exp.</span><span className="hero-experience-detail"> diseñando sitios web<span className="hero-experience-desktop"> y apps de escritorio</span></span></p>
         </div>
-        <p className="hero-greeting"><span className="hero-name-highlight">Diego Espinoza</span>, ingeniero informático de Valparaíso, Chile. Diseño y desarrollo experiencias digitales.</p>
       </div>
       <div className="fixed bottom-5 left-0 right-0 z-[60] flex w-full items-center justify-center px-[14px] text-[#dededb]/60 pointer-events-none max-[700px]:bottom-3 max-[700px]:px-2">
         <nav id="main-dock" className="pointer-events-auto mx-auto flex w-max max-w-full items-center justify-center gap-[clamp(8px,2.5vw,34px)] border border-[#dededb]/10 bg-[#090807] px-[18px] py-[14px] uppercase shadow-[0_10px_32px_rgba(0,0,0,.48),inset_0_1px_rgba(222,222,219,.025)] transition-none max-[700px]:max-w-[calc(100vw-16px)] max-[700px]:gap-[5px] max-[700px]:px-2 max-[700px]:py-[10px]" aria-label="Navegación principal">
